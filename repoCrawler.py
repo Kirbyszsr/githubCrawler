@@ -15,8 +15,7 @@ PULL_SUB_URL = "/pulls"
 ISSUE_SUB_URL = "/issues"
 
 #personal token to access github api(only for accessing)
-AUTHO_TOKEN = "eba809601560c1fdebe8e33f065003df3a4b41a2"
-
+AUTHO_TOKEN='*YOUR GITHUB AUTHORIRIZE TOKEN*'
 
 def repo_crawler(repoLists,typefilter_enabled=True,filter_type='Java'):
     infos = []
@@ -105,14 +104,30 @@ def branch_info_crawler(userName,repoName):
                 #    branch_info["branch_download_url"] = ""
                 returnval["branch_datas"].append(branch_info)
     except:
-        print("branch_info_crawler",userName,repoName)
+        print("branch_info_crawler ERROR",userName,repoName)
     return returnval
 
 
 
 def pull_info_crawler(userName,repoName):
     returnval = {"pull_datas": []}
+    pull_url = urljoin(API_BASE_URL, 'repos/' + userName + '/' + repoName + PULL_SUB_URL)
+    try:
+        rsp = requests.get(pull_url,
+                           headers={'Accept': 'application/json',
+                                    'Authorization': 'token ' + AUTHO_TOKEN})
+        if rsp.status_code == requests.codes.ok:
+            pulls = json.loads(rsp.text)
+        for pull in pulls:
+            pull_info = {}
+            pull_info["pull_number"] = pull["number"]
+            pull_info["pull_title"] = pull["title"]
+            pull_info["pull_version"] = pull["base"]["label"]
+            pull_info["pull_version_url"] = BRANCH_BASE_URL + userName +"/" + repoName + TREE_SUB_URL + "/" + pull["base"]["ref"]
 
+            returnval["pull_datas"].append(pull_info)
+    except:
+        print("pull_info_crawler ERROR",userName,repoName)
     return returnval
 
 
