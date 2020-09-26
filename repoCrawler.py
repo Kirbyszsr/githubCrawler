@@ -3,28 +3,48 @@ import requests
 from urllib.parse import urljoin
 
 from urlParser import url_parser
+from csvParser import read_csv
+#github api URL
 BASE_URL = "https://api.github.com/"
+#personal token to access github api(only for accessing)
+AUTHO_TOKEN = "b67a27f531e38dcfe5d2980b4ffe4ed8325c92b0"
 
-def repo_crawler(repoLists):
-    returnval = []
+
+def repo_crawler(repoLists,typefilter_enabled=True,filter_type='Java'):
+    return type_filter(repoLists,typefilter_enabled,filter_type)
+
+def type_filter(repoLists,typefilter_enabled,filter_type):
+    if not typefilter_enabled:
+        return repoLists
+    returnvals = []
     #crawl repository by [userName,repositoryName]
-    try:
-        for [userName,repoName] in repoLists:
-            print(userName,repoName)
-            repo_url = urljoin(BASE_URL, 'repos/' + userName + '/' + repoName)
-            ###
-            #todo: crawling without authorization is limited to 60 times per hour.
-            #todo: find a way to get authorized connection
-            ###
-            rsp = requests.get(repo_url, headers={'Accept': 'application/json'})
-            returnval = json.loads(rsp.text)
-            print(returnval)
-            #if returnval['language'] == 'Java':
-            #    print('isJava:',[userName,repoName])
-    except Exception:
-        print('error:',userName,repoName,Exception)
-    return returnval
+    for [userName,repoName] in repoLists:
+        print(userName,repoName)
+        repo_url = urljoin(BASE_URL, 'repos/' + userName + '/' + repoName)
+        try:
+            rsp = requests.get(repo_url,
+                               headers={'Accept': 'application/json',
+                                        'Authorization': 'token ' + AUTHO_TOKEN})
+            if rsp.status_code == requests.codes.ok:
+                returnval = json.loads(rsp.text)
+                if returnval['language'] == filter_type:
+                    print('is' + filter_type + ':',[userName,repoName])
+                    returnvals += [[userName,repoName]]
+        except:
+            print('Error:',userName,repoName,rsp)
+            continue
+    return returnvals
+
+
 
 if __name__ == "__main__":
-    repo_crawler([['fraywing', 'textAngular'], ['openssl', 'openssl'], ['apache', 'httpd'], ['php', 'php-src'], ['torvalds', 'linux'], ['philippK-de', 'Collabtive'], ['libuv', 'libuv'], ['spacewalkproject', 'spacewalk'], ['rapid7', 'metasploit-framework'], ['openSUSE', 'open-build-service'], ['khaledhosny', 'ots'], ['jamesturk', 'django-markupfield'], ['sddm', 'sddm'], ['sauruscms', 'Saurus-CMS-Community-Edition'], ['zencart-ja', 'zc-v1-series'], ['kajona', 'kajonacms'], ['ZF-Commons', 'ZfcUser'], ['bedita', 'bedita'], ['e107inc', 'e107v1'], ['croogo', 'croogo'], ['0x00string', 'oldays'], ['expressjs', 'serve-static'], ['Jasig', 'cas'], ['osTicket', 'osTicket-1.8'], ['darkarnium', 'secpub'], ['madler', 'pigz'], ['FFmpeg', 'FFmpeg'], ['w3c', 'resource-timing'], ['martinpitt', 'python-dbusmock'], ['lxc', 'lxc'], ['lxc', 'lxd'], ['lxc', 'lxcfs'], ['sequelize', 'sequelize'], ['chjj', 'marked'], ['evilpacket', 'marked'], ['JRogaishio', 'ferretCMS'], ['grml', 'grml-debootstrap'], ['cmaruti', 'reports'], ['sefrengo-cms', 'sefrengo-1.x'], ['phpbb', 'phpbb'], ['delta', 'pragyan'], ['bro', 'bro'], ['centreon', 'centreon'], ['atutor', 'ATutor'], ['fatfreecrm', 'fat_free_crm'], ['kamailio', 'kamailio'], ['kneecht', 'adminsystems'], ['stealth', 'troubleshooter'], ['theforeman', 'foreman'], ['rest-client', 'rest-client'], ['ruby', 'openssl'], ['saltstack', 'salt'], ['rails', 'jquery-rails'], ['rails', 'jquery-ujs'], ['wildfly-security', 'jboss-negotiation'], ['abrt', 'abrt'], ['ClusterLabs', 'pacemaker'], ['abrt', 'libreport'], ['jabberd2', 'jabberd2'], ['eclipse', 'jetty.project'], ['weidai11', 'cryptopp'], ['a-v-k', 'phpBugTracker'], ['netty', 'netty'], ['slimphp', 'Slim'], ['splitbrain', 'dokuwiki'], ['roundcube', 'roundcubemail'], ['ZeusCart', 'zeuscart'], ['edx', 'configuration'], ['phpmyadmin', 'phpmyadmin'], ['Halamix2', 'MyUPB'], ['PHP-Outburst', 'myUPB'], ['edx', 'edx-platform'], ['s9y', 'Serendipity'], ['kennethreitz', 'requests'], ['ether', 'etherpad-lite'], ['libarchive', 'libarchive'], ['capnproto', 'capnproto'], ['mono', 'mono'], ['wp-plugins', 'photo-gallery'], ['alkacon', 'opencms-core'], ['benoitc', 'restkit'], ['semplon', 'GeniXCMS'], ['kzar', 'watchadblock'], ['krb5', 'krb5'], ['mozilla-b2g', 'gaia'], ['quassel', 'quassel'], ['rsantamaria', 'papercrop'], ['Project-Pier', 'ProjectPier-Core'], ['kmatheussen', 'das_watchdog'], ['serghey-rodin', 'vesta'], ['orientechnologies', 'orientdb'], ['F21', 'jwt'], ['thoughtbot', 'paperclip'], ['sysphonic', 'thetis'], ['ceph', 'ceph-deploy'], ['kogmbh', 'WebODF'], ['the-tcpdump-group', 'tcpdump'], ['mysql', 'mysql-server'], ['openstack', 'trove'], ['picketlink', 'picketlink-bindings'], ['sosreport', 'sos'], ['apple', 'ccs-pykerberos'], ['apache', 'activemq-artemis'], ['YanVugenfirer', 'kvm-guest-drivers-windows'], ['trevp', 'tlslite'], ['ossec', 'ossec-hids'], ['rails', 'web-console'], ['rack', 'rack'], ['openstack', 'ossa'], ['markdown-it', 'markdown-it'], ['julianlam', 'nodebb-plugin-markdown'], ['yiisoft', 'yii2'], ['FransUrbo', 'zfs'], ['zfsonlinux', 'zfs'], ['audreyt', 'module-signature'], ['Automattic', 'Genericons'], ['VulcanJS', 'Vulcan'], ['Boonstra', 'Slideshow'], ['tigris', 'open-uri-cached'], ['CHEF-KOCH', 'Android-Vulnerabilities-Overview'], ['LibRaw', 'LibRaw'], ['rawstudio', 'rawstudio'], ['gobby', 'gobby'], ['gobby', 'libinfinity'], ['rofl0r', 'proxychains-ng'], ['kohler', 't1utils'], ['Dolibarr', 'dolibarr'], ['GPCsolutions', 'dolibarr'], ['AFNetworking', 'AFNetworking'], ['rubygems', 'rubygems'], ['pixelb', 'coreutils'], ['pgbouncer', 'pgbouncer'], ['jborg', 'attic'], ['antirez', 'redis'], ['mongoid', 'moped'], ['mongodb', 'bson-ruby'], ['pimcore', 'pimcore'], ['owncloud', 'client'], ['kyz', 'libmspack'], ['bblanchon', 'ArduinoJson'], ['denkGroot', 'Spina'], ['LimeSurvey', 'LimeSurvey'], ['nowsecure', 'samsung-ime-rce-poc'], ['devttys0', 'sasquatch'], ['plougher', 'squashfs-tools'], ['opencart', 'opencart'], ['ipython', 'ipython'], ['owncloud', 'core'], ['foxglovesec', 'JavaUnserializeExploits'], ['mantisbt', 'mantisbt'], ['anchorcms', 'anchor-cms'], ['wesnoth', 'wesnoth'], ['X2Engine', 'X2CRM'], ['divio', 'django-cms'], ['vmg', 'redcarpet'], ['latchset', 'kdcproxy'], ['ntp-project', 'ntp'], ['kerolasa', 'lelux-utiliteetit'], ['mdadams', 'jasper'], ['karelzak', 'util-linux'], ['01org', 'opa-ff'], ['01org', 'opa-fm'], ['google', 'protobuf'], ['qemu', 'qemu'], ['Gemorroj', 'phpwhois'], ['jsmitty12', 'phpWhois'], ['sbaresearch', 'advisories'], ['sparc', 'phpWhois.org'], ['openshift', 'origin'], ['pulp', 'pulp'], ['skyhighwings', 'CVE-2015-5290'], ['GetSimpleCMS', 'GetSimpleCMS'], ['elastic', 'elasticsearch'], ['joyent', 'node'], ['inverse-inc', 'sogo'], ['NucleusCMS', 'NucleusCMS'], ['security-breachlock', 'CVE-2015-5454'], ['Snorby', 'snorby'], ['htacg', 'tidy-html5'], ['strangerstudios', 'paid-memberships-pro'], ['octobercms', 'october'], ['NaCl-Ltd', 'pref-shimane-cms'], ['isucon', 'isucon5-qualify'], ['bittorrent', 'bootstrap-dht'], ['geddy', 'geddy'], ['WordPress', 'WordPress'], ['MISP', 'MISP'], ['bcit-ci', 'CodeIgniter'], ['golang', 'go'], ['salesagility', 'SuiteCRM'], ['XiphosResearch', 'exploits'], ['Froxlor', 'Froxlor'], ['miniupnp', 'miniupnp'], ['ansible', 'ansible'], ['claviska', 'simple-php-captcha'], ['bestpractical', 'rt'], ['tillkamppeter', 'ippusbxd'], ['wgm', 'cerb'], ['openssh', 'openssh-portable'], ['wolfcms', 'wolfcms'], ['floodlight', 'floodlight'], ['wikimedia', 'mediawiki'], ['jhy', 'jsoup'], ['googlei18n', 'sfntly'], ['ganglia', 'ganglia-web'], ['IAIK', 'wolfSSL-DoS'], ['jupyter', 'notebook'], ['twangboy', 'salt'], ['web2py', 'web2py'], ['git', 'git'], ['whatwg', 'html'], ['tinfoil', 'devise-two-factor'], ['0xAdrian', 'scripts'], ['sec-consult', 'houseofkeys'], ['vesse', 'node-ldapauth-fork'], ['gollum', 'gollum'], ['zopefoundation', 'Products.CMFCore'], ['plone', 'Products.CMFPlone'], ['miltonio', 'milton2'], ['zTree', 'zTree_v3'], ['revive-adserver', 'revive-adserver'], ['GTSolutions', 'Pie-Register'], ['nodejs', 'node'], ['keszybz', 'systemd'], ['systemd', 'systemd'], ['phusion', 'passenger'], ['kubernetes', 'kubernetes'], ['quadule', 'colorscore'], ['ruby', 'ruby'], ['nilsteampassnet', 'TeamPass'], ['rails', 'rails-html-sanitizer'], ['icewind1991', 'SMB'], ['ccrisan', 'motioneyeos'], ['hdm', 'juniper-cve-2015-7755'], ['kvesteri', 'sqlalchemy-utils'], ['Netflix', 'lemur'], ['josephernest', 'void'], ['fabpot', 'Twig'], ['twigphp', 'Twig'], ['QubesOS', 'qubes-secpack'], ['mjg59', 'linux'], ['Icinga', 'icinga-core'], ['vincentbernat', 'lldpd'], ['openpgpjs', 'openpgpjs'], ['relan', 'exfat'], ['textpattern', 'textpattern'], ['cloudera', 'hue'], ['django', 'django'], ['devsnd', 'cherrymusic'], ['mtrmac', 'IPTables-Parse'], ['redmine', 'redmine'], ['php-fusion', 'PHP-Fusion'], ['cakephp', 'cakephp'], ['shellinabox', 'shellinabox'], ['openstack', 'swift3'], ['PHPMailer', 'PHPMailer'], ['hydralabs', 'pyamf'], ['chef', 'chef'], ['blueman-project', 'blueman'], ['inspircd', 'inspircd'], ['Kozea', 'Radicale'], ['Unrud', 'Radicale'], ['tomhughes', 'libdwarf'], ['symphonycms', 'symphony-2'], ['gosa-project', 'gosa-core'], ['ud2', 'advisories'], ['vadz', 'libtiff'], ['rabbitmq', 'rabbitmq-management'], ['rabbitmq', 'rabbitmq-server'], ['Matroska-Org', 'libebml'], ['Matroska-Org', 'libmatroska'], ['horde', 'horde'], ['umbraco', 'Umbraco-CMS'], ['broofa', 'node-uuid'], ['varnish', 'Varnish-Cache'], ['stedolan', 'jq'], ['file', 'file'], ['ocaml', 'ocaml'], ['uclouvain', 'openjpeg'], ['dosfstools', 'dosfstools'], ['libgd', 'libgd'], ['ImageMagick', 'ImageMagick'], ['behdad', 'harfbuzz'], ['perl5-dbi', 'DBD-mysql'], ['square', 'git-fastclone'], ['npat-efault', 'picocom'], ['rubysec', 'ruby-advisory-db'], ['mikel', 'mail'], ['theguly', 'DecryptOpManager'], ['cybersecurityworks', 'Disclosed'], ['gnachman', 'iTerm2'], ['auth0', 'node-jsonwebtoken'], ['hapijs', 'hapi'], ['vdemedes', 'secure-compare'], ['jfhbrook', 'node-ecstatic'], ['felixge', 'node-mysql'], ['jquery', 'jquery'], ['qpdf', 'qpdf'], ['theupdateframework', 'notary'], ['harfbuzz', 'harfbuzz'], ['grafana', 'grafana'], ['grafana', 'piechart-panel'], ['omniauth', 'omniauth'], ['omniauth', 'omniauth-rails'], ['esotalk', 'esoTalk'], ['NodeBB', 'NodeBB'], ['grymer', 'CVE'], ['braekling', 'WP-Matomo'], ['scaron', 'prettyphoto'], ['espreto', 'wpsploit'], ['duchenerc', 'artificial-intelligence'], ['amansaini', 'fast-secure-contact-form'], ['FreeRADIUS', 'pam_radius'], ['ofirdagan', 'cross-domain-local-storage']]
-)
+    lists_sorted = url_parser(read_csv('./import/github_urlist.csv'),True)
+    returnvals = repo_crawler(lists_sorted)
+    print(returnvals)
+    """
+    [['spacewalkproject', 'spacewalk'], ['Jasig', 'cas'], ['wildfly-security', 'jboss-negotiation'], 
+    ['eclipse', 'jetty.project'], ['netty', 'netty'], ['alkacon', 'opencms-core'], 
+    ['orientechnologies', 'orientdb'], ['picketlink', 'picketlink-bindings'], ['apache', 'activemq-artemis'], 
+    ['elastic', 'elasticsearch'], ['isucon', 'isucon5-qualify'], ['floodlight', 'floodlight'], 
+    ['jhy', 'jsoup'], ['googlei18n', 'sfntly'], ['miltonio', 'milton2'], ['theguly', 'DecryptOpManager']]
+    """
