@@ -15,7 +15,7 @@ PULL_SUB_URL = "/pulls"
 ISSUE_SUB_URL = "/issues"
 
 #personal token to access github api(only for accessing)
-AUTHO_TOKEN='*YOUR GITHUB AUTHORIRIZE TOKEN*'
+AUTHO_TOKEN='*YOUR_AUTHO_TOKEN*'
 
 def repo_crawler(repoLists,typefilter_enabled=True,filter_type='Java'):
     infos = []
@@ -39,10 +39,7 @@ def repo_crawler(repoLists,typefilter_enabled=True,filter_type='Java'):
         repo_info["github_issues"] = issue_info_crawler(userName,repoName)
 
         infos.append(repo_info)
-
-
     return infos
-
 
 
 def type_filter(repoLists,typefilter_enabled,filter_type):
@@ -103,10 +100,9 @@ def branch_info_crawler(userName,repoName):
                 #    branch_info["branch_url"] = ""
                 #    branch_info["branch_download_url"] = ""
                 returnval["branch_datas"].append(branch_info)
-    except:
-        print("branch_info_crawler ERROR",userName,repoName)
+    except Exception as e:
+        print("branch_info_crawler ERROR",userName,repoName,e)
     return returnval
-
 
 
 def pull_info_crawler(userName,repoName):
@@ -126,14 +122,31 @@ def pull_info_crawler(userName,repoName):
             pull_info["pull_version_url"] = BRANCH_BASE_URL + userName +"/" + repoName + TREE_SUB_URL + "/" + pull["base"]["ref"]
 
             returnval["pull_datas"].append(pull_info)
-    except:
-        print("pull_info_crawler ERROR",userName,repoName)
+    except Exception as e:
+        print("pull_info_crawler ERROR",userName,repoName, e)
     return returnval
 
 
 def issue_info_crawler(userName,repoName):
     returnval = {"issue_datas": []}
-    return {}
+    issue_url = urljoin(API_BASE_URL, 'repos/' + userName + '/' + repoName + ISSUE_SUB_URL)
+    try:
+        rsp = requests.get(issue_url,
+                           headers={'Accept': 'application/json',
+                                    'Authorization': 'token ' + AUTHO_TOKEN})
+        if rsp.status_code == requests.codes.ok:
+            issues = json.loads(rsp.text)
+        for issue in issues:
+            issue_info = {}
+            issue_info["issue_url"] = BRANCH_BASE_URL + userName + "/" + repoName + ISSUE_SUB_URL + "/" + str(issue["number"])
+            issue_info["issue_title"] = issue["title"]
+            issue_info["issue_number"] = issue["number"]
+
+            returnval["issue_datas"].append(issue_info)
+    except Exception as e:
+        print("issue_info_crawler ERROR", userName, repoName, e)
+    return returnval
+
 
 if __name__ == "__main__":
     #lists_sorted = url_parser(read_csv('./import/github_urlist.csv'),True)
@@ -146,6 +159,5 @@ if __name__ == "__main__":
     ['elastic', 'elasticsearch'], ['isucon', 'isucon5-qualify'], ['floodlight', 'floodlight'], 
     ['jhy', 'jsoup'], ['googlei18n', 'sfntly'], ['miltonio', 'milton2'], ['theguly', 'DecryptOpManager']]
     """
-
 
     print(repo_crawler([['netty', 'netty']]))
