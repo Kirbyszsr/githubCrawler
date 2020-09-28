@@ -15,7 +15,7 @@ PULL_SUB_URL = "/pulls"
 ISSUE_SUB_URL = "/issues"
 
 #personal token to access github api(only for accessing)
-AUTHO_TOKEN='*YOUR_AUTHO_TOKEN*'
+AUTHO_TOKEN='*Your AUTHORITY TOKEN*'
 
 def repo_crawler(repoLists,typefilter_enabled=True,filter_type='Java'):
     infos = []
@@ -54,8 +54,8 @@ def type_filter(repoLists,typefilter_enabled,filter_type):
             if basic_info['language'] == filter_type:
                 #print('is' + filter_type + ':',[userName,repoName])
                 returnvals += [[userName,repoName]]
-        except:
-            print('Type_filter Error:', userName, repoName)
+        except Exception as e:
+            print('Type_filter Error:', userName, repoName, e)
     return returnvals
 
 
@@ -141,7 +141,24 @@ def issue_info_crawler(userName,repoName):
             issue_info["issue_url"] = BRANCH_BASE_URL + userName + "/" + repoName + ISSUE_SUB_URL + "/" + str(issue["number"])
             issue_info["issue_title"] = issue["title"]
             issue_info["issue_number"] = issue["number"]
+            issue_info["issue_text"] = issue["body"]
+            issue_info["issue_comments"] = []
+            issue_comment_url = urljoin(issue_url, str(issue_info["issue_number"]) + '/' + 'comments')
+            com_rsp = requests.get(issue_comment_url,
+                                   headers={'Accept':'application/json',
+                                            'Authorization': 'token '+ AUTHO_TOKEN})
+            if com_rsp.status_code == requests.codes.ok:
+                comments = json.loads(com_rsp.text)
+            else:
+                comments = []
+            for comment in comments:
+                comment_info = {}
+                comment_info["comment_username"] = comment["user"]["login"]
+                comment_info["comment_create_time"] = comment["created_at"]
+                comment_info["comment_edit_time"] = comment["updated_at"]
+                comment_info["comment_text"] = comment["body"]
 
+                issue_info["issue_comments"].append(comment_info)
             returnval["issue_datas"].append(issue_info)
     except Exception as e:
         print("issue_info_crawler ERROR", userName, repoName, e)
