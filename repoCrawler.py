@@ -18,7 +18,7 @@ ISSUE_SUB_URL = "/issues"
 OUT_PUT_LIB = "./output"
 
 #personal token to access github api(only for accessing)
-AUTHO_TOKEN='21bdc34b212df5b510616011e5e790a9171de8e8'
+AUTHO_TOKEN='*AUTHO_TOKEN*'
 
 def repo_crawler(repoLists,typefilter_enabled=True,filter_type='Java'):
     infos = []
