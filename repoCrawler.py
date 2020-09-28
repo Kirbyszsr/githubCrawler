@@ -1,5 +1,6 @@
 import json
 import requests
+import os
 from urllib.parse import urljoin
 from urlParser import url_parser
 from csvParser import read_csv
@@ -14,8 +15,10 @@ BRANCH_SUB_URL = "/branches"
 PULL_SUB_URL = "/pulls"
 ISSUE_SUB_URL = "/issues"
 
+OUT_PUT_LIB = "./output"
+
 #personal token to access github api(only for accessing)
-AUTHO_TOKEN='*Your AUTHORITY TOKEN*'
+AUTHO_TOKEN='21bdc34b212df5b510616011e5e790a9171de8e8'
 
 def repo_crawler(repoLists,typefilter_enabled=True,filter_type='Java'):
     infos = []
@@ -24,18 +27,13 @@ def repo_crawler(repoLists,typefilter_enabled=True,filter_type='Java'):
     for [userName,repoName] in repo_list_to_crawl:
         repo_info = {}
         basic_infos = repo_info_crawler(userName,repoName)
-
         repo_info["github_url"] =  basic_infos["html_url"]
-
         github_info = {}
         github_info["name"] = basic_infos["full_name"]
         github_info["language"] = basic_infos["language"]
         repo_info["github_info"] = github_info
-
         repo_info["github_branches"] = branch_info_crawler(userName,repoName)
-
         repo_info["github_pull_requests"] = pull_info_crawler(userName,repoName)
-
         repo_info["github_issues"] = issue_info_crawler(userName,repoName)
 
         infos.append(repo_info)
@@ -165,6 +163,44 @@ def issue_info_crawler(userName,repoName):
     return returnval
 
 
+def repo_file_crawler(repo_infos):
+    #input: repo info crawled in function repo_crawler
+    #output: completed repo files. Organized as below:
+    #./output
+    #     |repo1
+    #        |----branch1
+    #               \------branch1-folder1
+    #               \------branch1-folder2
+    #                             \------branch1-flie..
+    #        |----branch2
+    #...
+    #     | repo2
+    #.....etc.
+    for repo in repo_infos:
+        repo_name = repo["github_info"]["name"]
+        branches = repo["github_branches"]["branch_datas"]
+        for branch in branches:
+            #use http to download branch data zip
+            version = branch["branch_version"]
+            download_url = branch["branch_download_url"]
+            try:
+                r = requests.get(download_url)
+                file_dir = './output/' + repo_name + '/' + version
+                if not os.path.exists(file_dir):
+                    os.makedirs(file_dir)
+                zip_dir = file_dir + '/' + version + '.zip'
+                print(zip_dir + ' download started..')
+                with open(zip_dir,"wb+") as f:
+                    print(os.path.abspath(zip_dir))
+                    f.write(r.content)
+                    print(zip_dir + ' download succeed')
+                    f.close()
+            except Exception as e:
+                print("repo file download exception:",repo_name,version,download_url,e)
+
+    return None
+
+
 if __name__ == "__main__":
     #lists_sorted = url_parser(read_csv('./import/github_urlist.csv'),True)
     #returnvals = repo_crawler(lists_sorted)
@@ -176,5 +212,5 @@ if __name__ == "__main__":
     ['elastic', 'elasticsearch'], ['isucon', 'isucon5-qualify'], ['floodlight', 'floodlight'], 
     ['jhy', 'jsoup'], ['googlei18n', 'sfntly'], ['miltonio', 'milton2'], ['theguly', 'DecryptOpManager']]
     """
-
-    print(repo_crawler([['netty', 'netty']]))
+    info = repo_crawler([['netty', 'netty']])
+    repo_file_crawler(info)
