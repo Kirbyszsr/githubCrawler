@@ -1,10 +1,13 @@
 import json
 import requests
 import os
+import shutil
+import zipfile
 from urllib.parse import urljoin
 from urlParser import url_parser
 from csvParser import read_csv
 #github api URL
+
 API_BASE_URL = "https://api.github.com/"
 REPO_BASE_URL = "https://www.github.com/repos/"
 BRANCH_BASE_URL = "https://github.com/"
@@ -18,7 +21,7 @@ ISSUE_SUB_URL = "/issues"
 OUT_PUT_LIB = "./output"
 
 #personal token to access github api(only for accessing)
-AUTHO_TOKEN='*AUTHO_TOKEN*'
+AUTHO_TOKEN='*YOUR_AUTHO_TOKEN*'
 
 def repo_crawler(repoLists,typefilter_enabled=True,filter_type='Java'):
     infos = []
@@ -186,8 +189,10 @@ def repo_file_crawler(repo_infos):
             try:
                 r = requests.get(download_url)
                 file_dir = './output/' + repo_name + '/' + version
-                if not os.path.exists(file_dir):
-                    os.makedirs(file_dir)
+                if os.path.exists(file_dir):
+                    shutil.rmtree(file_dir)
+                os.makedirs(file_dir)
+
                 zip_dir = file_dir + '/' + version + '.zip'
                 print(zip_dir + ' download started..')
                 with open(zip_dir,"wb+") as f:
@@ -195,11 +200,56 @@ def repo_file_crawler(repo_infos):
                     f.write(r.content)
                     print(zip_dir + ' download succeed')
                     f.close()
+
+                #extract zip file
+                    zip_file = zipfile.ZipFile(zip_dir)
+                    zip_list = zip_file.namelist()
+                    for file in zip_list:
+                        if is_setting_file(file):
+                            zip_file.extract(file,file_dir)
+                    zip_file.close()
+
+                #delete zip file
+                os.remove(zip_dir)
             except Exception as e:
                 print("repo file download exception:",repo_name,version,download_url,e)
-
     return None
 
+def repo_info_outputer(repo_infos):
+    for repo in repo_infos:
+        repo_name = repo["github_info"]["name"]
+        file_dir = './output/' + repo_name
+        file_name = file_dir + '/' + repo_name[repo_name.find('/') + 1:] + '_info.json'
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        try:
+            with open(file_name,'w+') as file:
+                json.dump(repo,file)
+        except Exception as e:
+            print("repo_info_outputer ERROR:",repo_name,file_dir,file_name,e)
+    return
+
+def is_setting_file(filename):
+    #thanks to oppenoffice.org
+    # #http://www.openoffice.org/dev_docs/source/file_extensions.html
+    codefile_suffixs = ['.a','.asm','.asp','.awk','.bat',
+                        '.btm','.BTM','.c','.class','.cmd',
+                        '.h','.h','.cpp','.py','.pyc','.DES',
+                        '.dll','don','.dpc','.dpj','.dump',
+                        '.dxp','.eng','.exe','.flt','.fmt',
+                        '.hpp','.hrc','.html','.hxx','.Hxx',
+                        '.HXX','.ico','.idl','IDL','ih',
+                        '.omc','.inf','.java','.jar','.js',
+                        '.jsp','.lib','lnk','.kbx','.o',
+                        '.obj','.s','.src','.srs','.y','.yxx']
+    sourcefile_suffixs = ['.bmp','.csv','.cur','.cxx','.CXX',
+                          '.db','.def','.jpg','.png','.dlg',
+                          '.font','.ft','.gif','.LOG','.pfa',
+                          '.PS','.ttf','.TTF','.wav','.zip']
+    for suffix in codefile_suffixs + sourcefile_suffixs:
+        if filename.endswith(suffix):
+            return False
+    return True
 
 if __name__ == "__main__":
     #lists_sorted = url_parser(read_csv('./import/github_urlist.csv'),True)
@@ -213,4 +263,5 @@ if __name__ == "__main__":
     ['jhy', 'jsoup'], ['googlei18n', 'sfntly'], ['miltonio', 'milton2'], ['theguly', 'DecryptOpManager']]
     """
     info = repo_crawler([['netty', 'netty']])
-    repo_file_crawler(info)
+    #repo_file_crawler(info)
+    repo_info_outputer(info)
