@@ -52,9 +52,14 @@ def type_filter(repoLists,typefilter_enabled,filter_type):
     for [userName,repoName] in repoLists:
         try:
             basic_info = repo_info_crawler(userName,repoName)
-            if basic_info['language'] == filter_type:
-                #print('is' + filter_type + ':',[userName,repoName])
-                returnvals += [[userName,repoName]]
+            if basic_info != []:
+                if basic_info['language'] == filter_type:
+                    print('is' + filter_type + ':',[userName,repoName])
+                    returnvals += [[userName,repoName]]
+                else:
+                    print('Type_filter: repository',userName+ '/' +repoName,"is not a",filter_type,"project,type=",basic_info['language'])
+            else:
+                print('Type_filter: repository',userName, repoName," not found")
         except Exception as e:
             print('Type_filter Error:', userName, repoName, e)
     return returnvals
@@ -65,11 +70,15 @@ def repo_info_crawler(userName,repoName):
     returnval = []
     #print(userName, repoName)
     repo_url = urljoin(API_BASE_URL, 'repos/' + userName + '/' + repoName)
-    rsp = requests.get(repo_url,
-                       headers={'Accept': 'application/json',
-                                'Authorization': 'token ' + AUTHO_TOKEN})
-    if rsp.status_code == requests.codes.ok:
-        returnval = json.loads(rsp.text)
+    try:
+        print("repo_info_crawler:", userName, repoName)
+        rsp = requests.get(repo_url,
+                           headers={'Accept': 'application/json',
+                                    'Authorization': 'token ' + AUTHO_TOKEN})
+        if rsp.status_code == requests.codes.ok:
+            returnval = json.loads(rsp.text)
+    except:
+        returnval = []
     return returnval
 
 
@@ -78,6 +87,7 @@ def branch_info_crawler(userName,repoName):
 
     repo_url = urljoin(API_BASE_URL, 'repos/' + userName + '/' + repoName + BRANCH_SUB_URL)
     try:
+        print("branch_info_crawler:", userName, repoName)
         rsp = requests.get(repo_url,
                            headers={'Accept': 'application/json',
                                     'Authorization': 'token ' + AUTHO_TOKEN})
@@ -110,6 +120,7 @@ def pull_info_crawler(userName,repoName):
     returnval = {"pull_datas": []}
     pull_url = urljoin(API_BASE_URL, 'repos/' + userName + '/' + repoName + PULL_SUB_URL)
     try:
+        print("pull_info_crawler:", userName, repoName)
         rsp = requests.get(pull_url,
                            headers={'Accept': 'application/json',
                                     'Authorization': 'token ' + AUTHO_TOKEN})
@@ -132,6 +143,7 @@ def issue_info_crawler(userName,repoName):
     returnval = {"issue_datas": []}
     issue_url = urljoin(API_BASE_URL, 'repos/' + userName + '/' + repoName + ISSUE_SUB_URL)
     try:
+        print("issue_info_crawler:", userName, repoName)
         rsp = requests.get(issue_url,
                            headers={'Accept': 'application/json',
                                     'Authorization': 'token ' + AUTHO_TOKEN})
@@ -144,7 +156,7 @@ def issue_info_crawler(userName,repoName):
             issue_info["issue_number"] = issue["number"]
             issue_info["issue_text"] = issue["body"]
             issue_info["issue_comments"] = []
-            issue_comment_url = urljoin(issue_url, str(issue_info["issue_number"]) + '/' + 'comments')
+            issue_comment_url = urljoin(issue_url + '/', str(issue_info["issue_number"]) + '/comments')
             com_rsp = requests.get(issue_comment_url,
                                    headers={'Accept':'application/json',
                                             'Authorization': 'token '+ AUTHO_TOKEN})
@@ -183,6 +195,7 @@ def repo_file_crawler(repo_infos):
         repo_name = repo["github_info"]["name"]
         branches = repo["github_branches"]["branch_datas"]
         for branch in branches:
+            print('repo file download: branch downloading - ', repo_name, branch["branch_version"])
             #use http to download branch data zip
             version = branch["branch_version"]
             download_url = branch["branch_download_url"]
@@ -223,6 +236,7 @@ def repo_info_outputer(repo_infos):
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
         try:
+            print('repo_info_outputer:',repo_name,file_dir)
             with open(file_name,'w+') as file:
                 json.dump(repo,file)
         except Exception as e:
@@ -256,12 +270,22 @@ if __name__ == "__main__":
     #returnvals = repo_crawler(lists_sorted)
     #print(returnvals)
     """
+    returnvals = [['spacewalkproject', 'spacewalk'], ['Jasig', 'cas'], ['wildfly-security', 'jboss-negotiation'],
+     ['eclipse', 'jetty.project'], ['netty', 'netty'], ['alkacon', 'opencms-core'],
+     ['orientechnologies', 'orientdb'], ['picketlink', 'picketlink-bindings'], ['apache', 'activemq-artemis'],
+     ['elastic', 'elasticsearch'], ['isucon', 'isucon5-qualify'], ['floodlight', 'floodlight'],
+     ['jhy', 'jsoup'], ['googlei18n', 'sfntly'], ['miltonio', 'milton2'], ['theguly', 'DecryptOpManager']]
+    """
+    """
     [['spacewalkproject', 'spacewalk'], ['Jasig', 'cas'], ['wildfly-security', 'jboss-negotiation'], 
     ['eclipse', 'jetty.project'], ['netty', 'netty'], ['alkacon', 'opencms-core'], 
     ['orientechnologies', 'orientdb'], ['picketlink', 'picketlink-bindings'], ['apache', 'activemq-artemis'], 
     ['elastic', 'elasticsearch'], ['isucon', 'isucon5-qualify'], ['floodlight', 'floodlight'], 
     ['jhy', 'jsoup'], ['googlei18n', 'sfntly'], ['miltonio', 'milton2'], ['theguly', 'DecryptOpManager']]
     """
-    info = repo_crawler([['netty', 'netty']])
-    #repo_file_crawler(info)
-    repo_info_outputer(info)
+    info = repo_crawler([['netty','netty']])
+
+    #repo_info_crawler('netty', 'netty')
+    #repo_file_crawler([['netty', 'netty']])
+    #repo_info_crawler(info)
+    print(info)

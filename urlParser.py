@@ -1,4 +1,4 @@
-from csvParser import read_csv
+#from csvParser import read_csv
 
 def url_parser(urls,check_duplicated=True):
     #parse urls into lists including [userName,repositoryName]
@@ -34,7 +34,8 @@ def url_parser(urls,check_duplicated=True):
     return repos_sorted
 
 if __name__ == "__main__":
-    lists = url_parser(read_csv('./import/github_urlist.csv'),False)
-    print(lists)
-    lists_sorted = url_parser(read_csv('./import/github_urlist.csv'),True)
-    print(lists_sorted)
+    #lists = url_parser(read_csv('./import/github_urlist.csv'),False)
+    #print(lists)
+    #lists_sorted = url_parser(read_csv('./import/github_urlist.csv'),True)
+    #print(lists_sorted)
+    pass
