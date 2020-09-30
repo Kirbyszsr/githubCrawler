@@ -266,9 +266,14 @@ def is_setting_file(filename):
     return True
 
 if __name__ == "__main__":
-    #lists_sorted = url_parser(read_csv('./import/github_urlist.csv'),True)
+    lists_sorted = url_parser(read_csv('./import/github_urlist.csv'),True)
     #returnvals = repo_crawler(lists_sorted)
-    #print(returnvals)
+    returnvals = repo_crawler([['spacewalkproject', 'spacewalk'], ['Jasig', 'cas'], ['wildfly-security', 'jboss-negotiation'],
+     ['eclipse', 'jetty.project'], ['netty', 'netty'], ['alkacon', 'opencms-core'],
+     ['orientechnologies', 'orientdb'], ['picketlink', 'picketlink-bindings'], ['apache', 'activemq-artemis'],
+     ['elastic', 'elasticsearch'], ['isucon', 'isucon5-qualify'], ['floodlight', 'floodlight'],
+     ['jhy', 'jsoup'], ['googlei18n', 'sfntly'], ['miltonio', 'milton2'], ['theguly', 'DecryptOpManager']],False)
+    print(returnvals)
     """
     returnvals = [['spacewalkproject', 'spacewalk'], ['Jasig', 'cas'], ['wildfly-security', 'jboss-negotiation'],
      ['eclipse', 'jetty.project'], ['netty', 'netty'], ['alkacon', 'opencms-core'],
@@ -283,9 +288,10 @@ if __name__ == "__main__":
     ['elastic', 'elasticsearch'], ['isucon', 'isucon5-qualify'], ['floodlight', 'floodlight'], 
     ['jhy', 'jsoup'], ['googlei18n', 'sfntly'], ['miltonio', 'milton2'], ['theguly', 'DecryptOpManager']]
     """
-    info = repo_crawler([['netty','netty']])
+    #returnvals = [['theguly', 'DecryptOpManager']]
+    #info = repo_crawler(returnvals)
 
     #repo_info_crawler('netty', 'netty')
     #repo_file_crawler([['netty', 'netty']])
     #repo_info_crawler(info)
-    print(info)
+    #print(info)
