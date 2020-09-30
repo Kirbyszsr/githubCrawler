@@ -9,6 +9,10 @@ version 0.8
 
 可以爬取的信息是：仓库基本信息，分支信息，版本信息，合并请求信息及仓库各分支的配置文件。
 
+# Settings
+python 3.7
+使用csv,zipfile,shutil,requests,json依赖库
+
 ## input
 在根目录的import文件夹下使用csv文件存储的github url信息。
 示例见本工程的import文件夹。
