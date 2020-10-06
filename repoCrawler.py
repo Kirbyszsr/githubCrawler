@@ -21,11 +21,13 @@ ISSUE_SUB_URL = "/issues"
 OUT_PUT_LIB = "./output"
 
 #personal token to access github api(only for accessing)
-AUTHO_TOKEN='*YOUR TOKEN*'
+global AUTHO_TOKEN
+AUTHO_TOKEN ='*YOUR_TOKEN*'
 
-def repo_crawler(repoLists,typefilter_enabled=True,filter_type='Java'):
+def repo_crawler(repoLists,autho_token,typefilter_enabled=True,filter_type='Java'):
     infos = []
-
+    global AUTHO_TOKEN
+    AUTHO_TOKEN = autho_token
     repo_list_to_crawl = type_filter(repoLists,typefilter_enabled,filter_type)
     for [userName,repoName] in repo_list_to_crawl:
         repo_info = {}
@@ -77,7 +79,7 @@ def repo_info_crawler(userName,repoName):
                                     'Authorization': 'token ' + AUTHO_TOKEN})
         if rsp.status_code == requests.codes.ok:
             returnval = json.loads(rsp.text)
-    except:
+    except Exception as e:
         returnval = []
     return returnval
 

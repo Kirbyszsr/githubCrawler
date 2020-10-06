@@ -34,18 +34,13 @@ def sqlite_parser(repo_info,sqlite_database="./output/sqlite_database.db"):
                 conn.commit()
                 print('pull_data succeed')
             for issue in repo["github_issues"]["issue_datas"]:
-                cursor.execute(sqliteSQL.GITHUB_ISSUE_COMMENTS_INFO_INSERT,
+                cursor.execute(sqliteSQL.GITHUB_ISSUES_INFO_INSERT,
                                (repo_id,issue["issue_url"],issue["issue_title"],issue["issue_number"],issue["issue_text"],))
                 conn.commit()
                 print('issue succeed')
                 issue_id = cursor.execute(
                     sqliteSQL.GITHUB_ISSUES_INFO_SELECT_ID,
-                    (repo_id,issue["issue_number"],))
-                print(issue_id)
-                for row in issue_id:
-                    print(row)
-                 #todo: find bugs makes issue_id become nonetype
-
+                    (repo_id,issue["issue_number"],)).fetchone()[0]
                 for comment in issue["issue_comments"]:
                     cursor.execute(sqliteSQL.GITHUB_ISSUE_COMMENTS_INFO_INSERT,
                                    (issue_id,comment["comment_username"],comment["comment_create_time"],

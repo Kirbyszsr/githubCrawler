@@ -1,7 +1,7 @@
 # githubCrawler
 **a github repository using Github API v3 by kirbyszsr**
 
-version 0.8
+version 1.0
 
 # What is githubCrawler?
 
@@ -50,4 +50,4 @@ python 3.7
 使用提取出来的仓库基本信息爬取仓库各项数据，保存文件并生成仓库描述json信息。
 
 ###sqliteParser.py
-暂时未开发，用于将获得的json信息存入sqlite数据库。
+用于将获得的json信息存入sqlite数据库。
